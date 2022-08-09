@@ -45,6 +45,12 @@ class Parser:
             self._command_type = C_GOTO
         elif op == 'if-goto':
             self._command_type = C_IF
+        elif op == 'function':
+            self._command_type = C_FUNCTION
+        elif op == 'call':
+            self._command_type = C_CALL
+        elif op == 'return':
+            self._command_type = C_RETURN
         else:
             # Must be comment or empty line
             self._command_type = None

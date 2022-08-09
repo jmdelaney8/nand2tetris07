@@ -28,6 +28,12 @@ if __name__ == '__main__':
             writer.writeGoto(parser.arg1())
         elif parser.commandType() == C_IF:
             writer.writeIf(parser.arg1())
+        elif parser.commandType() == C_FUNCTION:
+            writer.writeFunction(parser.arg1(), int(parser.arg2()))
+        elif parser.commandType() == C_CALL:
+            assert(False)
+        elif parser.commandType() == C_RETURN:
+            writer.writeReturn()
         count += 1
     writer.loop()
     writer.close()

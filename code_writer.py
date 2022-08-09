@@ -198,3 +198,66 @@ class CodeWriter:
         self.writePop()
         self.file.write('@{}\n'.format(label))
         self.file.write('D;JNE\n')
+
+
+    def writeFunction(self, name, nVars):
+        self.file.write('// function {} {}\n'.format(name, nVars))
+        self.file.write('({})\n'.format(name))
+        for _ in range(nVars):
+            self.file.write('@0\n')
+            self.file.write('D=A\n')
+            self.writePushD()
+
+
+    def writeReturn(self):
+        self.file.write('// return\n')
+        # Store current LCL pointer
+        self.file.write('@LCL\n')
+        self.file.write('D=M\n')
+        self.file.write('@R13\n')
+        self.file.write('M=D\n')
+        # Store return address
+        self.file.write('@R14\n')
+        self.file.write('M=D\n')
+        self.file.write('@5\n')
+        self.file.write('D=A\n')
+        self.file.write('@R14\n')
+        self.file.write('D=M-D\n')
+        self.file.write('A=D\n')
+        self.file.write('D=M\n')
+        self.file.write('@R14\n')
+        self.file.write('M=D\n')
+        # Set arg 0 to return value
+        self.writePop()
+        self.file.write('@ARG\n')
+        self.file.write('A=M\n')
+        self.file.write('M=D\n')
+        # Set the stack pointer to one past arg0
+        self.file.write('D=A\n')
+        self.file.write('@SP\n')
+        self.file.write('M=D+1\n')
+        # Restore registers
+        self.writeRestoreRegister('THAT', 1)
+        self.writeRestoreRegister('THIS', 2)
+        self.writeRestoreRegister('ARG', 3)
+        self.writeRestoreRegister('LCL', 4)
+        # GOTO return address
+        self.file.write('@R14\n')
+        self.file.write('A=M\n')
+        self.file.write('0;JMP\n')
+
+    def writeRestoreRegister(self, register, offset):
+        """
+        Restore register when returning a function. Offset of the rgister from the local pointer of callee
+        being returned.
+        """
+        self.file.write('@{}\n'.format(offset))
+        self.file.write('D=A\n')
+        self.file.write('@R13\n')
+        self.file.write('D=M-D\n'.format(offset))
+        self.file.write('A=D\n')
+        self.file.write('D=M\n')
+        self.file.write('@{}\n'.format(register))
+        self.file.write('M=D\n')
+
+
