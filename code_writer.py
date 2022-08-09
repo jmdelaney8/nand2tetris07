@@ -1,5 +1,14 @@
 from os import path
-from translator import *  # For the op enums
+from translator import *  
+
+# Segment constants
+SP = 0
+LCL = 1
+ARG = 2
+THIS = 3
+THAT = 4
+TEMP = 5
+TEMP_LEN = 8
 
 
 class CodeWriter:
@@ -7,6 +16,7 @@ class CodeWriter:
         filename = path.splitext(infile)[0]
         self.bool_count = 0
         self.file = open(filename + '.asm', 'w')
+
 
     def writeArithmetic(self, op):
         print('writing arith op: {}'.format(op))
@@ -26,15 +36,12 @@ class CodeWriter:
             print('ERROR did not act on op: {}'.format(op))
 
 
-
-
-
     def writeArithOp(self, op):
         # Log
         self.file.write('//{}\n'.format(op))
-        self.writePop('R5')
+        self.writePop('R13')
         self.writePop()
-        self.file.write('@R5\n')
+        self.file.write('@R13\n')
         if op == 'add':
             self.file.write('D=D+M\n')
         elif op == 'sub':
@@ -46,12 +53,11 @@ class CodeWriter:
         self.writePushD()
 
 
-
     def writeCompare(self, op):
         self.file.write('//{}\n'.format(op))
-        self.writePop('R5')
+        self.writePop('R13')
         self.writePop()
-        self.file.write('@R5\n')
+        self.file.write('@R13\n')
         self.file.write('D=D-M\n')
         self.file.write('@true{}\n'.format(self.bool_count))
         if op == 'eq':
@@ -70,8 +76,6 @@ class CodeWriter:
         self.file.write('(ENDBOOL{})\n'.format(self.bool_count))
         self.bool_count+=1
         self.writePushD()
-            
-
 
 
     def writePushD(self):
@@ -101,15 +105,53 @@ class CodeWriter:
             command = 'push'
         else:
             command = 'pop'
-        self.file.write('// {} {} {}'.format(command, segment, index))
-        
-        # Translation
+        self.file.write('// {} {} {}\n'.format(command, segment, index))
+
         if op == C_PUSH:
-            self.file.write('@{}'.format(index))
-            self.file.write('D=A\n')
+            if segment == 'constant':
+                self.file.write('@{}\n'.format(index))
+                self.file.write('D=A\n')
+            else:
+                self.writeGetPointerAddress(segment, index)
+                self.file.write('A=D\n')
+                self.file.write('D=M\n')            
             self.writePushD()
         elif op == C_POP:
+            self.writeGetPointerAddress(segment, index)
+            self.file.write('@R13\n')
+            self.file.write('M=D\n')
             self.writePop()
+            self.file.write('@R13\n')
+            self.file.write('A=M\n')
+            self.file.write('M=D\n')
+
+
+    def writeGetPointerAddress(self, segment, index):
+        """
+        Places address in D register. Assume it's not called
+        for constant segment.
+        """
+        # Find the base address to use
+        base = None
+        if segment == 'local':
+            base = LCL
+        elif segment == 'argument':
+            base = ARG
+        elif segment == 'this':
+            base = THIS
+        elif segment == 'that':
+            base = THAT
+        elif segment == 'temp':
+            base = TEMP
+
+        self.file.write('@{}\n'.format(index))
+        self.file.write('D=A\n')
+        self.file.write('@{}\n'.format(base))
+        if segment == 'temp':
+            self.file.write('D=A+D\n')
+        else:
+            self.file.write('D=M+D\n'.format(index))                
+            
 
     def loop(self):
         self.file.write('(END)\n')

@@ -30,7 +30,7 @@ class Parser:
 
     def parse(self):
         # Parse op
-        command = self.command.split('\n')[0]
+        command = self.command.rstrip()
         op = command.split(' ')[0]
         print('op = {}'.format(op))
         if op in ['add', 'sub', 'neg', 'eq', 'gt', 'lt', 'and', 'or', 'not']:
@@ -53,11 +53,11 @@ class Parser:
         elif self._command_type == C_RETURN:
             self._arg1 = None
         else:
-            self._arg1 = self.command.split(' ')[1]
+            self._arg1 = command.split(' ')[1]
 
         # Parse arg2
         if self._command_type in [C_PUSH, C_POP, C_FUNCTION, C_CALL]:
-            self._arg2 = self.command.split(' ')[2]
+            self._arg2 = command.split(' ')[2]
         else:
             self._arg2 = None
 
