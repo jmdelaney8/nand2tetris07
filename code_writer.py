@@ -13,9 +13,10 @@ TEMP_LEN = 8
 
 class CodeWriter:
     def __init__(self, infile):
-        filename = path.splitext(infile)[0]
+        pathname = path.splitext(infile)[0]
+        self.filename = path.basename(pathname)
         self.bool_count = 0
-        self.file = open(filename + '.asm', 'w')
+        self.file = open(pathname + '.asm', 'w')
 
 
     def writeArithmetic(self, op):
@@ -111,19 +112,25 @@ class CodeWriter:
             if segment == 'constant':
                 self.file.write('@{}\n'.format(index))
                 self.file.write('D=A\n')
+            elif segment == 'static':
+                self.file.write('@{}.{}\n'.format(self.filename, index))
+                self.file.write('D=M\n')
             else:
                 self.writeGetPointerAddress(segment, index)
                 self.file.write('A=D\n')
                 self.file.write('D=M\n')            
             self.writePushD()
         elif op == C_POP:
-            self.writeGetPointerAddress(segment, index)
-            self.file.write('@R13\n')
-            self.file.write('M=D\n')
-            self.writePop()
-            self.file.write('@R13\n')
-            self.file.write('A=M\n')
-            self.file.write('M=D\n')
+            if segment == 'static':
+                self.writePop('{}.{}'.format(self.filename, index))
+            else:
+                self.writeGetPointerAddress(segment, index)
+                self.file.write('@R13\n')
+                self.file.write('M=D\n')
+                self.writePop()
+                self.file.write('@R13\n')
+                self.file.write('A=M\n')
+                self.file.write('M=D\n')
 
 
     def writeGetPointerAddress(self, segment, index):
