@@ -59,7 +59,7 @@ class CodeWriter:
         self.writePop()
         self.file.write('@R13\n')
         self.file.write('D=D-M\n')
-        self.file.write('@true{}\n'.format(self.bool_count))
+        self.file.write('@TRUE{}\n'.format(self.bool_count))
         if op == 'eq':
             self.file.write('D;JEQ\n')
         elif op == 'lt':
@@ -70,7 +70,7 @@ class CodeWriter:
         self.file.write('D=A\n')
         self.file.write('@ENDBOOL{}\n'.format(self.bool_count))
         self.file.write('0; JMP\n')
-        self.file.write('(true{})\n'.format(self.bool_count))
+        self.file.write('(TRUE{})\n'.format(self.bool_count))
         self.file.write('@0\n')
         self.file.write('D=A-1\n')
         self.file.write('(ENDBOOL{})\n'.format(self.bool_count))
