@@ -39,6 +39,12 @@ class Parser:
             self._command_type = C_PUSH
         elif op == 'pop':
             self._command_type = C_POP
+        elif op == 'label':
+            self._command_type = C_LABEL
+        elif op == 'goto':
+            self._command_type = C_GOTO
+        elif op == 'if-goto':
+            self._command_type = C_IF
         else:
             # Must be comment or empty line
             self._command_type = None

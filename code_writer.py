@@ -177,6 +177,24 @@ class CodeWriter:
         self.file.write('@END\n')
         self.file.write('0;JMP\n')
 
+
     def close(self):
         self.file.close()
 
+
+    def writeLabel(self, label):
+        self.file.write('// label {}\n'.format(label))
+        self.file.write('({})\n'.format(label))
+
+
+    def writeGoto(self, label):
+        self.file.write('// goto {}\n'.format(label))
+        self.file.write('@{}\n'.format(label))
+        self.file.write('0; JMP\n')
+
+
+    def writeIf(self, label):
+        self.file.write('// if-goto {}\n'.format(label))
+        self.writePop()
+        self.file.write('@{}\n'.format(label))
+        self.file.write('D;JNE\n')

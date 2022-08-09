@@ -22,6 +22,12 @@ if __name__ == '__main__':
             writer.writeArithmetic(parser.arg1())
         elif parser.commandType() in [C_PUSH, C_POP]:
             writer.writePushPop(parser.commandType(), parser.arg1(), parser.arg2())
+        elif parser.commandType() == C_LABEL:
+            writer.writeLabel(parser.arg1())
+        elif parser.commandType() == C_GOTO:
+            writer.writeGoto(parser.arg1())
+        elif parser.commandType() == C_IF:
+            writer.writeIf(parser.arg1())
         count += 1
     writer.loop()
     writer.close()
