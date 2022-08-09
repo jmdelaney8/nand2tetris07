@@ -1,5 +1,5 @@
+from parser import *
 from os import path
-from parser import *  
 
 # Segment constants
 SP = 0
@@ -12,11 +12,17 @@ TEMP_LEN = 8
 
 
 class CodeWriter:
-    def __init__(self, infile):
-        pathname = path.splitext(infile)[0]
-        self.filename = path.basename(pathname)
+    def __init__(self, outpath):
+        self.filename = None
         self.bool_count = 0
-        self.file = open(pathname + '.asm', 'w')
+        self.call_counts = {}  # keep track of number of calls in a function
+        outfilename = path.basename(outpath) + '.asm'
+        self.file = open(path.join(outpath, outfilename), 'w')
+        self.writeInitialize()
+
+
+    def setFileName(self, name):
+        self.filename = name
 
 
     def writeArithmetic(self, op):
@@ -178,6 +184,15 @@ class CodeWriter:
         self.file.write('0;JMP\n')
 
 
+    def writeInitialize(self):
+        self.file.write('// initialize\n')
+        self.file.write('@256\n')
+        self.file.write('D=A\n')
+        self.file.write('@SP\n')
+        self.file.write('M=D\n')
+        self.writeCall('Sys.init', 0)
+
+
     def close(self):
         self.file.close()
 
@@ -260,4 +275,45 @@ class CodeWriter:
         self.file.write('@{}\n'.format(register))
         self.file.write('M=D\n')
 
+    def writeCall(self, fname, nArgs):
+        self.file.write('// call {} {}\n'.format(fname, nArgs))
+        # Set up call count if needed
+        if not fname in self.call_counts:
+            self.call_counts[fname] = 0
+        # Push return address label
+        return_address = '{}$ret.{}'.format(fname, self.call_counts[fname])
+        self.file.write('@{}\n'.format(return_address))
+        self.call_counts[fname] += 1
+        self.file.write('D=A\n')
+        self.writePushD()
+        # Push LCL, ARG, THIS, THAT
+        self.writePushRegister('LCL')
+        self.writePushRegister('ARG')
+        self.writePushRegister('THIS')
+        self.writePushRegister('THAT')
+        # Reposition ARG
+        self.file.write('@SP\n')
+        self.file.write('D=M\n')
+        self.file.write('@5\n')
+        self.file.write('D=D-A\n')
+        self.file.write('@{}\n'.format(nArgs))
+        self.file.write('D=D-A\n')
+        self.file.write('@ARG\n')
+        self.file.write('M=D\n')
+        # Set LCL 
+        self.file.write('@SP\n')
+        self.file.write('D=M\n')
+        self.file.write('@LCL\n')
+        self.file.write('M=D\n')
+        # goto f
+        self.file.write('@{}\n'.format(fname))
+        self.file.write('0;JMP\n')
+        # Insert return address
+        self.file.write('({})\n'.format(return_address))
 
+
+    def writePushRegister(self, reg):
+        self.file.write('@{}\n'.format(reg))
+        self.file.write('D=M\n')
+        self.writePushD()
+        
