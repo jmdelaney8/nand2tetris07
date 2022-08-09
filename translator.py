@@ -1,0 +1,23 @@
+import sys
+
+from code_writer import *
+from parser import *
+
+
+if __name__ == '__main__':
+    infile = sys.argv[1]
+    parser = Parser(infile)
+    writer = CodeWriter(infile)
+
+    count = 0
+    while parser.hasMoreLines():
+        print('Command {}'.format(count))
+        parser.advance()
+        print('command code = {}'.format(parser.commandType()))
+        if parser.commandType() == C_ARITHMETIC:
+            writer.writeArithmetic(parser.arg1())
+        elif parser.commandType() in [C_PUSH, C_POP]:
+            writer.writePushPop(parser.commandType(), parser.arg1(), parser.arg2())
+        count += 1
+    writer.loop()
+    writer.close()
