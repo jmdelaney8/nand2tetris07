@@ -1,13 +1,17 @@
 import sys
 
 from code_writer import *
+from parser import Parser
 from parser import *
+
+
+
 
 
 if __name__ == '__main__':
     infile = sys.argv[1]
-    parser = Parser(infile)
     writer = CodeWriter(infile)
+    parser = Parser(infile)
 
     count = 0
     while parser.hasMoreLines():

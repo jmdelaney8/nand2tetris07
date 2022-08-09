@@ -1,5 +1,5 @@
 from os import path
-from translator import *  
+from parser import *  
 
 # Segment constants
 SP = 0
@@ -143,11 +143,23 @@ class CodeWriter:
             base = THAT
         elif segment == 'temp':
             base = TEMP
+        elif segment == 'pointer':
+            if int(index) == 0:
+                base = THIS
+                index = 0
+            elif int(index) == 1:
+                base = THAT
+                index = 0
+            else:
+                print('WARNING bad index {} for pointer'.format(index))
+        else:
+            print('WARNING bad segment {}'.format(segment))
 
         self.file.write('@{}\n'.format(index))
         self.file.write('D=A\n')
         self.file.write('@{}\n'.format(base))
-        if segment == 'temp':
+        # TODO: Do I need to include pointer with temp?
+        if segment in ['temp', 'pointer']:
             self.file.write('D=A+D\n')
         else:
             self.file.write('D=M+D\n'.format(index))                
